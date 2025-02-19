@@ -204,4 +204,48 @@ public class SimulateurShould
 
         Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuelDecimal, salaireMensuelConjoint, nombreEnfants));
     }
+
+
+    [Fact(DisplayName = "Calcul de l'impôt pour un célibataire en dessous du seuil de 500 000")]
+    public void CalculerImpotsAnnuel_CelibataireInferieurSeuil500000()
+    {
+        decimal valeurAttendue = 87308.56M;
+        string situationFamiliale = "Célibataire";
+        int salaireMensuelValide = 20000;
+        int salaireMensuelConjoint = 0;
+        int nombreEnfants = 0;
+
+        decimal resultatValide = Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuelValide, salaireMensuelConjoint, nombreEnfants);
+
+        Assert.Equal(valeurAttendue, resultatValide);
+    }
+
+
+    [Fact(DisplayName = "Calcul de l'impôt pour un célibataire au dessus du seuil de 500 000")]
+    public void CalculerImpotsAnnuel_CelibataireSuperieurSeuil500000()
+    {
+        decimal valeurAttendue = 223508.56M;
+        string situationFamiliale = "Célibataire";
+        int salaireMensuelValide = 45000;
+        int salaireMensuelConjoint = 0;
+        int nombreEnfants = 0;
+
+        decimal resultatValide = Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuelValide, salaireMensuelConjoint, nombreEnfants);
+
+        Assert.Equal(valeurAttendue, resultatValide);
+    }
+
+    [Fact(DisplayName = "Calcul de l'impôt pour un couple au dessus du seuil de 500 000")]
+    public void CalculerImpotsAnnuel_MarieSeuil500000()
+    {
+        decimal valeurAttendue = 234925.68M;
+        string situationFamiliale = "Marié/Pacsé";
+        int salaireMensuelValide = 30000;
+        int salaireMensuelConjoint = 25000;
+        int nombreEnfants = 2;
+
+        decimal resultatValide = Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuelValide, salaireMensuelConjoint, nombreEnfants);
+
+        Assert.Equal(valeurAttendue, resultatValide);
+    }
 }
