@@ -19,20 +19,21 @@ app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 app.MapGet("/api/tax/calculate",
         (string situationFamiliale, decimal salaireMensuel, decimal salaireMensuelConjoint, int nombreEnfants) =>
         {
-            try
-            {
-                return Results.Ok(
-                    Simulateur.CalculerImpotsAnnuel(
+            Resultat<decimal, string> resultat = Simulateur.CalculerImpotsAnnuel(
                         situationFamiliale,
                         salaireMensuel,
                         salaireMensuelConjoint,
-                        nombreEnfants)
-                );
-            }
-            catch (ArgumentException ex)
+                        nombreEnfants);
+            IResult reponse;
+            if(resultat.EstEchec())
             {
-                return Results.BadRequest(ex.Message);
+                reponse = Results.BadRequest(resultat.SiEchec());
             }
+            else
+            {
+                reponse = Results.Ok(resultat.SiSucces());
+            }
+            return reponse;
         })
     .WithName("CalculateTax");
 
