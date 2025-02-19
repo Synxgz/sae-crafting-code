@@ -63,6 +63,7 @@ public class SimulateurShould
         string situationFamiliale = "Marié/Pacsé";
         int salaireMensuel = 3000;
         int salaireMensuelConjoint = 3000;
+        int salaireMensuelConjointInvalide = -2000;
         int nombreEnfantsValide = 3;
         int nombreEnfantsInvalide = -1;
 
@@ -74,7 +75,133 @@ public class SimulateurShould
         Assert.Equal("Le nombre d'enfants ne peut pas être négatif.", exception.Message);
         Assert.IsType<ArgumentException>(exception);
 
+        exception = Assert.Throws<ArgumentException>(() =>
+        Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjointInvalide, nombreEnfantsValide));
+
+        Assert.Equal("Les salaires doivent être positifs.", exception.Message);
+        Assert.IsType<ArgumentException>(exception);
+
         Assert.Equal(valeurAttendue, resultatValide);
 
+    }
+
+    [Fact(DisplayName = "Validation des entrées utilisateur")]
+    public void CalculerImpotsAnnuel_ValidationEntreesUtilisateur()
+    {
+        // Cas 1: Situation familiale invalide
+        string situationFamiliale = "Divorcé";
+        int salaireMensuel = 2000;
+        int salaireMensuelConjoint = 2000;
+        int nombreEnfants = 1;
+
+        var resultat = Assert.Throws<ArgumentException>(() =>
+        Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        Assert.Equal("Situation familiale invalide.", resultat.Message);
+        Assert.IsType<ArgumentException>(resultat);
+
+        // Cas 2: Salaires mensuels négatifs
+        situationFamiliale = "Célibataire";
+        salaireMensuel = -3000;
+        salaireMensuelConjoint = 2000;
+        nombreEnfants = 1;
+
+        resultat = Assert.Throws<ArgumentException>(() =>
+        Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        Assert.Equal("Les salaires doivent être positifs.", resultat.Message);
+        Assert.IsType<ArgumentException>(resultat);
+
+        // Cas 3: Nombre d'enfants négatif
+        situationFamiliale = "Marié/Pacsé";
+        salaireMensuel = 3000;
+        salaireMensuelConjoint = 2000;
+        nombreEnfants = -1;
+
+        resultat = Assert.Throws<ArgumentException>(() =>
+        Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        Assert.Equal("Le nombre d'enfants ne peut pas être négatif.", resultat.Message);
+        Assert.IsType<ArgumentException>(resultat);
+
+        // Cas 4 : Cas de test 1
+        decimal valeurAttendue = 1515.25M;
+
+        situationFamiliale = "Célibataire";
+        salaireMensuel = 2000;
+        salaireMensuelConjoint = 0;
+        nombreEnfants = 0;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 5 : Cas de test 2
+        valeurAttendue = 5843.9M;
+
+        situationFamiliale = "Célibataire";
+        salaireMensuel = 5000;
+        salaireMensuelConjoint = 0;
+        nombreEnfants = 2;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 6 : Cas de test 3
+        valeurAttendue = 4043.90M;
+
+        situationFamiliale = "Marié/Pacsé";
+        salaireMensuel = 2000;
+        salaireMensuelConjoint = 2500;
+        nombreEnfants = 0;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 7 : Cas de test 4
+        valeurAttendue = 3983.37M;
+
+        situationFamiliale = "Marié/Pacsé";
+        salaireMensuel = 3000;
+        salaireMensuelConjoint = 3000;
+        nombreEnfants = 3;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 8 : Cas de test 5
+        valeurAttendue = 5498.62M;
+
+        situationFamiliale = "Marié/Pacsé";
+        salaireMensuel = 4000;
+        salaireMensuelConjoint = 4000;
+        nombreEnfants = 5;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 9 : Cas de test 6
+        valeurAttendue = 20804.88M;
+
+        situationFamiliale = "Marié/Pacsé";
+        salaireMensuel = 8000;
+        salaireMensuelConjoint = 2000;
+        nombreEnfants = 1;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 10 : Cas de test 7
+        valeurAttendue = 10781579.96M;
+
+        situationFamiliale = "Marié/Pacsé";
+        salaireMensuel = 2000000;
+        salaireMensuelConjoint = 10000;
+        nombreEnfants = 3;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
+
+        // Cas 11 : Cas de test 8
+        valeurAttendue = 10661178.05M;
+
+        situationFamiliale = "Célibataire";
+        decimal salaireMensuelDecimal = 1978123.98M;
+        salaireMensuelConjoint = 0;
+        nombreEnfants = 0;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuelDecimal, salaireMensuelConjoint, nombreEnfants));
     }
 }
