@@ -1,90 +1,64 @@
 namespace Tax.Simulator;
 
+/// <summary>
+/// Simulateur d'impôts
+/// </summary>
 public static class Simulateur
 {
     private static readonly decimal[] TranchesImposition = {10225m, 26070m, 74545m, 160336m}; // Plafonds des tranches
     private static readonly decimal[] TauxImposition = {0.0m, 0.11m, 0.30m, 0.41m, 0.45m}; // Taux correspondants
 
+    /// <summary>
+    /// Calcule l'impôt annuel en fonction de la situation familiale,
+    /// du salaire mensuel,
+    /// du salaire mensuel du conjoint
+    /// et du nombre d'enfants
+    /// </summary>
+    /// <param name="situationFamiliale">situation familiale : Célibataire ou Marié/Pacsé</param>
+    /// <param name="salaireMensuel">salaire mensuel >= 0</param>
+    /// <param name="salaireMensuelConjoint">salaire mensuel du conjoint >= 0 si Marié/Pacsé</param>
+    /// <param name="nombreEnfants">nombre d'enfants >= 0 </param>
+    /// <returns>l'Impôt annuel</returns>
     public static decimal CalculerImpotsAnnuel(
         string situationFamiliale,
         decimal salaireMensuel,
         decimal salaireMensuelConjoint,
         int nombreEnfants)
     {
-        if (situationFamiliale != "Célibataire" && situationFamiliale != "Marié/Pacsé")
-        {
-            throw new ArgumentException("Situation familiale invalide.");
-        }
+        Situation situation = new Situation(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants); 
 
-        if (salaireMensuel <= 0)
-        {
-            throw new ArgumentException("Les salaires doivent être positifs.");
-        }
+        decimal impotParPart = CalculerImpotParPart(situation);
 
-        if (situationFamiliale == "Marié/Pacsé" && salaireMensuelConjoint < 0)
-        {
-            throw new ArgumentException("Les salaires doivent être positifs.");
-        }
+        return Math.Round(impotParPart * situation.PartsFiscales, 2);
+    }
 
-        if (nombreEnfants < 0)
-        {
-            throw new ArgumentException("Le nombre d'enfants ne peut pas être négatif.");
-        }
+    private static decimal CalculerImpotParPart(Situation situation)
+    {
+        decimal revenuImposableParPart = situation.RevenuAnnuel / situation.PartsFiscales;
+        decimal trancheSuperieure = TranchesImposition.FirstOrDefault(t => t > revenuImposableParPart,revenuImposableParPart);
 
-        decimal revenuAnnuel;
-        if (situationFamiliale == "Marié/Pacsé")
-        {
-            revenuAnnuel = (salaireMensuel + salaireMensuelConjoint) * 12;
-        }
-        else
-        {
-            revenuAnnuel = salaireMensuel * 12;
-        }
-
-        var baseQuotient = situationFamiliale == "Marié/Pacsé" ? 2 : 1;
-        decimal quotientEnfants = (decimal) Math.PI;
-
-        if (nombreEnfants == 0)
-        {
-            quotientEnfants = 0;
-        }
-        else if (nombreEnfants == 1)
-        {
-            quotientEnfants = 0.5m;
-        }
-        else if (nombreEnfants == 2)
-        {
-            quotientEnfants = 1.0m;
-        }
-        else
-        {
-            quotientEnfants = 1.0m + (nombreEnfants - 2) * 0.5m;
-        }
-
-        var partsFiscales = baseQuotient + quotientEnfants;
-        var revenuImposableParPart = revenuAnnuel / partsFiscales;
-
-        decimal impot = 0;
-        for (var i = 0; i < TranchesImposition.Length; i++)
-        {
-            if (revenuImposableParPart <= TranchesImposition[i])
+        decimal impot = TranchesImposition
+            // Pour chaque tranche, création d'un objet anonyme avec
+            // la tranche actuelle, la précédente et le taux correspondant
+            .Select((tranche, index) => new
             {
-                impot += (revenuImposableParPart - (i > 0 ? TranchesImposition[i - 1] : 0)) * TauxImposition[i];
-                break;
-            }
-            else
-            {
-                impot += (TranchesImposition[i] - (i > 0 ? TranchesImposition[i - 1] : 0)) * TauxImposition[i];
-            }
-        }
+                Tranche = tranche,
+                TranchePrecedente = index > 0 ? TranchesImposition[index - 1] : 0,
+                Taux = TauxImposition[index]
+            })
+            // Tant que le revenu imposable par part est supérieur ou égal
+            // à la tranche supérieure au revenu imposable par part
+            .TakeWhile(x => x.Tranche <= trancheSuperieure)
+            .Sum(x => (Math.Min(x.Tranche, revenuImposableParPart) - x.TranchePrecedente) * x.Taux);
 
-        if (revenuImposableParPart > TranchesImposition[^1])
+
+        //Si le revenu imposable par part est supérieur à la dernière tranche
+        if (TranchesImposition[^1] < revenuImposableParPart)
         {
             impot += (revenuImposableParPart - TranchesImposition[^1]) * TauxImposition[^1];
         }
 
-        var impotParPart = impot;
-
-        return Math.Round(impotParPart * partsFiscales, 2);
+        return impot;
     }
+
 }
