@@ -248,4 +248,20 @@ public class SimulateurShould
 
         Assert.Equal(valeurAttendue, resultatValide);
     }
+
+    [Fact(DisplayName = "Calcul de l'impôt pour un celibataire avec un salaire mensuel conjoint supérieur à 0")]
+    public void CalculerImpotsAnnuel_CelibataireAnomalie()
+    {
+        decimal valeurAttendue = 5843.9M;
+
+        string situationFamiliale = "Célibataire";
+        int salaireMensuel = 5000;
+        int salaireMensuelConjointAnomalie = 1;
+        int salaireMensuelConjointValide = 0;
+        int nombreEnfants = 2;
+
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjointAnomalie, nombreEnfants));
+        Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjointValide, nombreEnfants));
+    }
+
 }

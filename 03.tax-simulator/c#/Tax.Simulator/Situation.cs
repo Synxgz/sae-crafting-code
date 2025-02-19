@@ -13,14 +13,13 @@ namespace Tax.Simulator
     {
         const string CELIBATAIRE = "Célibataire";
         const string MARIE = "Marié/Pacsé";
-        const decimal IMPOSITION_ENFANTS = 3;
         const decimal VALEUR_ENFANT = 0.5m;
 
         public bool EstCelibataire { get; }
         public decimal SalaireMensuel { get; }
         public decimal SalaireMensuelConjoint { get;  }
         public int NombreEnfants { get; }
-        public decimal RevenuAnnuel => EstCelibataire ? SalaireMensuel * 12 : (SalaireMensuel + SalaireMensuelConjoint) * 12;
+        public decimal RevenuAnnuel => (SalaireMensuel + (EstCelibataire ? 0 : SalaireMensuelConjoint)) * 12;
 
         public decimal PartsFiscales 
         { 
@@ -29,8 +28,7 @@ namespace Tax.Simulator
                 // Nombre de personnes dans le foyé
                 decimal baseQuotient = EstCelibataire ? 1 : 2;
 
-                // Si enfants > 3, famille nombreuse donc quotient plus avantageux 
-                decimal quotientEnfants = NombreEnfants < IMPOSITION_ENFANTS ? VALEUR_ENFANT * NombreEnfants : 1.0m + (NombreEnfants - 2) * VALEUR_ENFANT;
+                decimal quotientEnfants = VALEUR_ENFANT * NombreEnfants;
                 return baseQuotient + quotientEnfants;
             } 
         }
@@ -45,7 +43,7 @@ namespace Tax.Simulator
         public Situation(string situationFamiliale, decimal salaireMensuel, decimal salaireMensuelConjoint, int nombreEnfants)
         {
             VerifierCondition(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants);
-            EstCelibataire = situationFamiliale == CELIBATAIRE ? true : false;
+            EstCelibataire = situationFamiliale == CELIBATAIRE;
             SalaireMensuel = salaireMensuel;
             SalaireMensuelConjoint = salaireMensuelConjoint;
             NombreEnfants = nombreEnfants;
