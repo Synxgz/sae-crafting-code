@@ -5,6 +5,8 @@ namespace Tax.Simulator;
 /// </summary>
 public static class Simulateur
 {
+    const string CELIBATAIRE = "Célibataire";
+    const string MARIE = "Marié/Pacsé";
     private static readonly decimal[] TranchesImposition = {10225m, 26070m, 74545m, 160336m, 500000m}; // Plafonds des tranches
     private static readonly decimal[] TauxImposition = {0.0m, 0.11m, 0.30m, 0.41m, 0.45m, 0.48m}; // Taux correspondants
 
@@ -19,17 +21,49 @@ public static class Simulateur
     /// <param name="salaireMensuelConjoint">salaire mensuel du conjoint >= 0 si Marié/Pacsé</param>
     /// <param name="nombreEnfants">nombre d'enfants >= 0 </param>
     /// <returns>l'Impôt annuel</returns>
-    public static decimal CalculerImpotsAnnuel(
+    public static Resultat<decimal,string> CalculerImpotsAnnuel(
         string situationFamiliale,
         decimal salaireMensuel,
         decimal salaireMensuelConjoint,
         int nombreEnfants)
     {
-        Situation situation = new Situation(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants); 
+        Resultat<decimal, string> resultat = VerifierConditions(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants);
+        if (!resultat.EstEchec())
+        {
+            Situation situation = new Situation(situationFamiliale == CELIBATAIRE, salaireMensuel, salaireMensuelConjoint, nombreEnfants);
+            decimal impotParPart = CalculerImpotParPart(situation);
+            resultat = Resultat<decimal, string>.Succes(Math.Round(impotParPart * situation.PartsFiscales, 2));
+        }
 
-        decimal impotParPart = CalculerImpotParPart(situation);
+        return resultat;
+    }
 
-        return Math.Round(impotParPart * situation.PartsFiscales, 2);
+    private static Resultat<decimal, string> VerifierConditions(string situationFamiliale,
+        decimal salaireMensuel,
+        decimal salaireMensuelConjoint,
+        int nombreEnfants)
+    {
+        Resultat<decimal, string> resultat = Resultat<decimal, string>.Succes(0);
+        if (situationFamiliale != CELIBATAIRE && situationFamiliale != MARIE)
+        {
+            resultat = Resultat<decimal,string>.Echec("Situation familiale invalide.");
+        }
+
+        if (salaireMensuel <= 0)
+        {
+            resultat = Resultat<decimal, string>.Echec("Les salaires doivent être positifs.");
+        }
+
+        if (situationFamiliale == MARIE && salaireMensuelConjoint < 0)
+        {
+            resultat = Resultat<decimal, string>.Echec("Les salaires doivent être positifs.");
+        }
+
+        if (nombreEnfants < 0)
+        {
+            resultat = Resultat<decimal, string>.Echec("Le nombre d'enfants ne peut pas être négatif.");
+        }
+        return resultat;
     }
 
     private static decimal CalculerImpotParPart(Situation situation)
