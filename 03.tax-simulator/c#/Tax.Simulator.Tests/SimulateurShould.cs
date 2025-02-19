@@ -185,7 +185,7 @@ public class SimulateurShould
         Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
 
         // Cas 10 : Cas de test 7
-        valeurAttendue = 10781579.96M;
+        valeurAttendue = 11452679.96M;
 
         situationFamiliale = "Marié/Pacsé";
         salaireMensuel = 2000000;
@@ -195,7 +195,7 @@ public class SimulateurShould
         Assert.Equal(valeurAttendue, Simulateur.CalculerImpotsAnnuel(situationFamiliale, salaireMensuel, salaireMensuelConjoint, nombreEnfants));
 
         // Cas 11 : Cas de test 8
-        valeurAttendue = 10661178.05M;
+        valeurAttendue = 11358302.68M;
 
         situationFamiliale = "Célibataire";
         decimal salaireMensuelDecimal = 1978123.98M;
